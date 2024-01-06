@@ -7,7 +7,7 @@ frames = opts.framesPerTrial;
 fullMat = cell(1,length(eventType));
 eventIdx = cell(1,length(eventType));
 events = reshape(events, frames, [], length(eventType)); %reshape to trials
-trialCnt = size(events,2); %nr of trials
+trialCnt = size(events,2); %nr of trials, number of trials
 
 for iRegs = 1 : length(eventType)
     
@@ -17,6 +17,7 @@ for iRegs = 1 : length(eventType)
     elseif eventType(iRegs) == 2
         kernelIdx = 0 : opts.sPostTime; %index for design matrix to cover post event activity
     elseif eventType(iRegs) == 3
+        % time interval of one event, 15 frames == 0.5s
         kernelIdx = [-(opts.mPreTime: -1 : 1) 0 (1:opts.mPostTime)]; %index for design matrix to cover pre- and post event activity
     else
         error('Unknown event type. Must be a value between 1 and 3.')
@@ -28,9 +29,9 @@ for iRegs = 1 : length(eventType)
         
         % Get the zero lag regressor.
         trace = logical(events(:,iTrials,iRegs));
-        
+
         % create full design matrix
-        cIdx = bsxfun(@plus,find(trace),kernelIdx);
+        cIdx = bsxfun(@plus,find(trace),kernelIdx); % the event_time_interval frame index, e.g., 76 = 15 + 1 + 60 frames
         cIdx(cIdx < 1) = 0;
         cIdx(cIdx > frames) = frames;
         cIdx = bsxfun(@plus,cIdx,(0:frames:frames*length(kernelIdx)-1));

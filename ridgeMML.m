@@ -209,7 +209,8 @@ if nargout > 1
     betas(:, i) = ((XTX + L(i) * ep) \ XTY(:, i));
   end
   
-  % Adjust betas to account for renorming.
+  % Adjust betas to account for renorming (this step is used for predicting
+  % remaining data
   betas = bsxfun(@rdivide, betas, renorm);
   betas(isnan(betas)) = 0;
 end

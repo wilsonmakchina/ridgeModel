@@ -1,5 +1,5 @@
 %% basic variables
-fPath = [pwd filesep 'Widefield' filesep]; %path to widefield data
+cPath = [pwd filesep 'Widefield' filesep]; %path to widefield data
 
 trialSegments = [0 55 80 130 160]; %segments to create maps for whole trial regressors
 motorIdx = 16; %index for zero-lag motor regressor

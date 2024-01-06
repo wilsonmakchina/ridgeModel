@@ -10,10 +10,14 @@
 % from the CSHL repository, under http://repository.cshl.edu/38599/. 
 % Download the data folder 'Widefield' and navigate to its location in Matlab.
 
+
+%%
+addpath(genpath('C:\Users\Public\code\wildfield_musall'));
+data_dir = 'D:\OneDrive - HKUST Connect\data_analysis\musall_etal\labshare.cshl.edu\shares\library\repository\38599';
 %% get some data from example recording
-animal = 'mSM43'; %example animal
-rec = '23-Nov-2017'; %example recording
-fPath = [pwd filesep 'Widefield' filesep animal filesep rec filesep]; %path to demo recording
+animal = 'mSM66'; %example animal
+rec = '08-Sep-2018'; %example recording
+fPath = [data_dir filesep 'Widefield' filesep animal filesep rec filesep]; %path to demo recording
 
 load([fPath 'opts2.mat'], 'opts'); % load some options
 load('allenDorsalMapSM.mat', 'dorsalMaps'); % load allen atlas info
@@ -37,10 +41,13 @@ opts.mPreTime = ceil(0.5 * opts.frameRate);  % precede motor events to capture p
 opts.mPostTime = ceil(2 * opts.frameRate);   % follow motor events for mPostStim in frames (used for eventType 3)
 opts.framesPerTrial = frames; % nr. of frames per trial
 opts.folds = 10; %nr of folds for cross-validation
-
+opts.cv_seq = 1;
 %% get some events
-load([fPath 'orgRegData.mat'], 'fullR', 'recLabels', 'recIdx', 'idx'); %load design matrix to isolate example events and video data (refer to the code 'delayDec_RegressModel' to see how this was generated in the paper)
-recIdx(idx) = []; %reject non-used regressors
+
+%load design matrix to isolate example events and video data 
+% (refer to the code 'delayDec_RegressModel' to see how this was generated in the paper)
+load([fPath 'orgRegData.mat'], 'fullR', 'recLabels', 'recIdx', 'idx'); 
+recIdx(idx) = []; %reject non-used regressors, idx is the index of non-used regressors
 vidR = fullR(:,end-399:end); %last 400 PCs are video components
 
 % task events
@@ -52,13 +59,14 @@ taskEvents(:,3) = fullR(:,find(recIdx == find(ismember(recLabels,taskLabels(3)))
 taskEvents(:,4) = fullR(:,find(recIdx == find(ismember(recLabels,taskLabels(4))),1)); %find choice reressor. This is true when the animal responded on the left.
 taskEvents(:,5) = fullR(:,find(recIdx == find(ismember(recLabels,taskLabels(5))),1)); %find previous reward regressor. This is true when previous trial was rewarded.
 
-% movement events
+% movement events, can be divided into Instructed and unInstructed movements 
 moveLabels = {'lGrab' 'rGrab' 'lLick' 'rLick' 'nose' 'whisk'}; %some movement variables
 moveEventType = [3 3 3 3 3 3]; %different type of events. these are all peri-event variables.
 for x = 1 : length(moveLabels)
     moveEvents(:,x) = fullR(:,find(recIdx == find(ismember(recLabels, moveLabels(x))),1)+15); %find movement regressor.
 end
 clear fullR %clear old design matrix
+
 
 % make design matrix
 [taskR, taskIdx] = makeDesignMatrix(taskEvents, taskEventType, opts); %make design matrix for task variables
@@ -115,7 +123,7 @@ compareMovie(cBeta)
 
 %% run cross-validation
 %full model - this will take a moment
-[Vfull, fullBeta, ~, fullIdx, fullRidge, fullLabels] = crossValModel(fullR, Vc, regLabels, regIdx, regLabels, opts.folds);
+[Vfull, fullBeta, ~, fullIdx, fullRidge, fullLabels] = crossValModel(fullR, Vc, regLabels, regIdx, regLabels, opts);
 save([fPath 'cvFull.mat'], 'Vfull', 'fullBeta', 'fullR', 'fullIdx', 'fullRidge', 'fullLabels'); %save some results
 
 fullMat = modelCorr(Vc,Vfull,U) .^2; %compute explained variance
@@ -144,9 +152,9 @@ moveMat = moveMat(:, 1:size(allenMask,2));
 %% show R^2 results
 %cross-validated R^2
 figure;
-subplot(1,3,1);
+% subplot(1,3,1);
 mapImg = imshow(fullMat,[0 0.75]);
-colormap(mapImg.Parent,'inferno'); axis image; title('cVR^2 - Full model');
+% colormap(mapImg.Parent,'inferno'); axis image; title('cVR^2 - Full model');
 set(mapImg,'AlphaData',~isnan(mapImg.CData)); %make NaNs transparent.
         
 subplot(1,3,2);
