@@ -28,14 +28,14 @@ foldCnt = floor(size(Vc,2) / folds);
 
 rng(1) % for reproducibility
 if cv_seq == 1
-    randIdx = randperm(size(Vc,2)); %generate randum number index
+    randIdx = randperm(size(Vc,2)); %generate random number index
 else
     DT = cv_seq;
-%     if cv_seq == 2
-%         DT = 10;%floor(foldCnt/folds_sub);
-%     elseif cv_seq == 3
-%         DT = 20;%floor(foldCnt/folds_sub);
-%     end
+    if cv_seq == 2
+        DT = 10;%floor(foldCnt/folds_sub);
+    elseif cv_seq == 3
+        DT = 233;%floor(foldCnt/folds_sub);
+    end
     randIdx = 1:DT:nt; % the start index of folds in test set
     if randIdx(end)+DT > nt
         randIdx = randIdx(1:end-1);   
@@ -55,7 +55,6 @@ for iFolds = 1:folds
         else
             dataIdx(randIdx(((iFolds - 1)*foldCnt) + (1:foldCnt))) = false; %index for training data
         end
-%             dataIdx(((iFolds - 1)*foldCnt) + (1:foldCnt)) = false;
         if iFolds == 1
             [cRidge, cBeta{iFolds}] = ridgeMML(Vc(:,dataIdx)', cR(dataIdx,:), false); %get beta weights and ridge penalty for task only model
         else
